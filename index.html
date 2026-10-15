@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="./leaflet.css">
 
   <!-- App styles -->
-  <link rel="stylesheet" href="./styles.css?v=solar-learning-satellite-12">
+  <link rel="stylesheet" href="./styles.css?v=route-graph-learning-13">
 </head>
 <body>
 
@@ -272,8 +272,10 @@
               </tbody></table>
             </section>
           </div>
-          <details class="info-disclosure explain-card" id="route-info" open>
-            <summary><span><small>ROUTE DETAILS</small><b>Route calculations &amp; graph</b></span><i aria-hidden="true">⌄</i></summary>
+          <section class="info-disclosure explain-card" id="route-info" aria-labelledby="route-info-title">
+            <div class="disclosure-heading">
+              <span><small>ROUTE DETAILS</small><b id="route-info-title">Route calculations &amp; graph</b></span>
+            </div>
             <div class="disclosure-content">
             <div class="explain-head">
               <div><p class="eyebrow">SEE THE DIFFERENCE</p><h3 id="explain-title">Route metrics graph</h3></div>
@@ -316,7 +318,7 @@
               <p class="formula-footnote">Shade estimates use mapped OpenStreetMap trees/buildings. A simple astronomy fallback uses the nearest 15° longitude meridian for its time-zone estimate, so it omits some orbital and clock corrections.</p>
             </section>
             </div>
-          </details>
+          </section>
           <section class="history-card" aria-labelledby="history-title">
             <div class="history-head"><div><p class="eyebrow">SAVED TO THIS DEVICE</p><h3 id="history-title">Your walk history</h3></div><button type="button" class="text-btn" id="btn-history-refresh">Refresh</button></div>
             <p class="history-status" id="history-status" role="status">Loading saved walks…</p>
@@ -345,6 +347,7 @@
   <!-- Leaflet JS — served locally -->
   <script src="./leaflet.js"></script>
   <!-- App JS -->
-  <script src="./frontend.js?v=solar-learning-satellite-12"></script>
+  <script src="./frontend.js?v=route-graph-learning-13"></script>
 </body>
 </html>
+
