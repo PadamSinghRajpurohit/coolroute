@@ -620,6 +620,10 @@ body.light .seg-btn.active { background: var(--teal-glow); }
 
 /* Plain-language route graph and formula guide */
 .info-disclosure { margin: 2px 14px 12px; border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(145deg, var(--surface2), rgba(62,217,182,.035)); overflow: hidden; }
+.disclosure-heading { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 15px; color: var(--ink); border-bottom: 1px solid var(--line); }
+.disclosure-heading > span { display: grid; gap: 4px; }
+.disclosure-heading small { color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: 1.2px; }
+.disclosure-heading b { font-size: 14px; }
 .info-disclosure > summary { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 15px; color: var(--ink); cursor: pointer; list-style: none; transition: background .18s, color .18s; }
 .info-disclosure > summary::-webkit-details-marker { display: none; }
 .info-disclosure > summary:hover { background: rgba(62,217,182,.08); color: var(--teal); }
@@ -1015,4 +1019,5 @@ body.light .auth-theme-toggle:hover { color: #fff; background: #197761; }
   button.ui-pressed { animation: none !important; }
   .auth-screen *, .auth-screen *::before, .auth-screen *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
 
