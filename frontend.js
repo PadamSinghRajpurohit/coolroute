@@ -733,6 +733,29 @@
     $('graph-status').textContent = status;
   }
 
+  // Draw useful distance/time information as soon as the street directions
+  // endpoint responds. Shade and heat stay explicitly unavailable until the
+  // separate shade-aware comparison finishes; never invent those values.
+  function renderBaselineGraph(distanceM, walkTimeMin, status) {
+    const initial = { distance: [distanceM, v => `${Math.round(v)} m`],
+      time: [walkTimeMin, v => `${v.toFixed(1)} min`] };
+    document.querySelectorAll('.graph-row').forEach(row => {
+      const key = row.dataset.metric;
+      const shortBar = row.querySelector('.short-bar');
+      const shortValue = row.querySelector('.short-value');
+      const coolBar = row.querySelector('.cool-bar');
+      const coolValue = row.querySelector('.cool-value');
+      const available = initial[key];
+      shortBar.style.width = available ? '100%' : '0';
+      shortBar.title = available ? `Shortest: ${available[1](available[0])}` : '';
+      shortValue.textContent = available ? available[1](available[0]) : 'Needs shade data';
+      coolBar.style.width = '0';
+      coolBar.removeAttribute('title');
+      coolValue.textContent = '—';
+    });
+    $('graph-status').textContent = status;
+  }
+
   function clearComparisonGraph(status) {
     document.querySelectorAll('.graph-bar-line i').forEach(bar => { bar.style.width = '0'; bar.removeAttribute('title'); });
     document.querySelectorAll('.graph-bar-line span').forEach(label => { label.textContent = '—'; });
@@ -852,7 +875,7 @@
       $('m-heat-cool').textContent = '—';
       $('m-heat-delta').textContent = 'Shade data needed';
       $('cool-route-note').textContent = 'Waiting for shade data covering both points.';
-      $('graph-status').textContent = 'Shortest street route is ready; waiting for shade comparison';
+      renderBaselineGraph(distance, minutes, 'Street route ready · shade comparison loading');
       $('budget-chip').textContent = 'Shortest route';
       $('budget-chip').className = 'chip';
       $('verdict').textContent = `Complete walking route: ${fmtM(distance)} · about ${fmtMin(minutes)}.`;
@@ -885,7 +908,10 @@
                 closed_edge_ids: closedEdgeIds }),
             });
             const { baseline, coolroute } = comparison;
-            if (!baseline || !coolroute || !Number.isFinite(+baseline.distance_m) || !Number.isFinite(+coolroute.distance_m)) {
+            const metricKeys = ['distance_m', 'walk_time_min', 'shaded_share', 'heat_exposure'];
+            if (!baseline || !coolroute || metricKeys.some(key =>
+              typeof baseline[key] !== 'number' || !Number.isFinite(baseline[key]) ||
+              typeof coolroute[key] !== 'number' || !Number.isFinite(coolroute[key]))) {
               throw new Error('The shade service returned incomplete route data.');
             }
             const completeGeometry = endpointsMatch(baseline, routeOrigin, routeDestination) && endpointsMatch(coolroute, routeOrigin, routeDestination);
@@ -1143,4 +1169,5 @@
   loadStreets(false);
 
 })();
+
 
