@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b161a">
+  <title>CoolRoute · Walk in the Shade</title>
+
+  <!-- Leaflet — served locally, no CDN required -->
+  <link rel="stylesheet" href="./leaflet.css">
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="./styles.css?v=solar-learning-satellite-12">
+</head>
+<body>
+
+  <!-- Use the saved theme, or the operating-system preference on first visit. -->
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('coolroute-theme');
+      if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+        document.body.classList.add('light');
+      }
+    } catch (_) {}
+  </script>
+
+  <section class="auth-screen" id="auth-screen" aria-label="CoolRoute account">
+    <canvas class="auth-ambient-canvas" id="auth-ambient-canvas" aria-hidden="true"></canvas>
+    <div class="auth-glow auth-glow-one"></div><div class="auth-glow auth-glow-two"></div>
+    <button class="auth-theme-toggle" id="auth-theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme">☼</button>
+    <div class="auth-layout">
+      <div class="auth-story">
+        <a class="auth-brand" href="#" aria-label="CoolRoute"><span class="brand-mark">CR</span><span>CoolRoute<small>WALK IN THE SHADE</small></span></a>
+        <div class="auth-copy">
+          <p class="auth-kicker"><span></span> WALK SMARTER, FEEL COOLER</p>
+          <h1>Your next walk<br>has a <em>cooler side.</em></h1>
+          <p>Plan a comfortable route with real streets, shade estimates and live weather—all in one calm dashboard.</p>
+          <div class="auth-feature-row"><span>✦ Shade-aware routes</span><span>◉ Live conditions</span></div>
+        </div>
+        <div class="auth-orbit" aria-hidden="true"><i class="orbit-ring ring-a"></i><i class="orbit-ring ring-b"></i><i class="orbit-sun">☀</i><i class="orbit-leaf">✦</i></div>
+      </div>
+      <div class="auth-card-wrap">
+        <form class="auth-card" id="auth-form" novalidate>
+          <div class="auth-mobile-brand"><span class="brand-mark">CR</span> COOLROUTE</div>
+          <p class="auth-kicker">YOUR PERSONAL WALK PLANNER</p>
+          <h2 id="auth-title">Welcome back</h2>
+          <p class="auth-subtitle" id="auth-subtitle">Sign in to open your route dashboard.</p>
+          <div class="auth-tabs" role="tablist" aria-label="Account access">
+            <button type="button" class="auth-tab active" id="tab-signin" role="tab" aria-selected="true">Sign in</button>
+            <button type="button" class="auth-tab" id="tab-signup" role="tab" aria-selected="false">Create account</button>
+          </div>
+          <label class="auth-label" for="auth-email">Email address</label>
+          <div class="auth-input-wrap"><span aria-hidden="true">✉</span><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254"></div>
+          <label class="auth-label" for="auth-password">Password</label>
+          <div class="auth-input-wrap"><span aria-hidden="true">⌑</span><input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="At least 10 characters" required minlength="10" maxlength="256"><button class="password-toggle" type="button" id="auth-show-password" aria-label="Show password">Show</button></div>
+          <div id="auth-confirm-row" hidden>
+            <label class="auth-label" for="auth-confirm">Confirm password</label>
+            <div class="auth-input-wrap"><span aria-hidden="true">✓</span><input id="auth-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Enter your password again" maxlength="256"></div>
+          </div>
+          <p class="auth-feedback" id="auth-feedback" role="status" aria-live="polite"></p>
+          <button class="auth-submit" id="auth-submit" type="submit"><span id="auth-submit-label">Sign in</span><span aria-hidden="true">→</span></button>
+          <p class="auth-privacy">Local account for this CoolRoute server. Passwords are stored as salted hashes; no email is sent.</p>
+        </form>
+        <p class="auth-card-foot">Made for the long way home—and the cooler way there.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ TOP BAR ═══════════ -->
+  <header class="topbar" role="banner">
+    <a class="brand" href="/" aria-label="CoolRoute home">
+      <span class="brand-mark" aria-hidden="true">CR</span>
+      <span class="brand-text">CoolRoute<small>WALK IN THE SHADE</small></span>
+    </a>
+
+    <div class="topbar-center">
+      <div class="status-badge" id="status-badge">
+        <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+        <span id="status-text">Starting…</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="weather-chip" id="weather-chip">
+        <span class="weather-icon" aria-hidden="true">☀</span>
+        <div>
+          <b id="weather-temp">--°</b>
+          <small id="weather-sub">Loading…</small>
+        </div>
+      </div>
+      <span class="account-chip" id="account-email" hidden></span>
+      <button class="icon-btn signout-btn" id="btn-signout" aria-label="Sign out" title="Sign out">↗</button>
+      <button class="icon-btn" id="btn-theme" aria-label="Toggle theme" title="Toggle light/dark">◑</button>
+    </div>
+  </header>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <main>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div>
+        <p class="eyebrow">SMARTER PEDESTRIAN ROUTING</p>
+        <h1>Take the <em>cooler</em> way.</h1>
+        <p class="lede">Click the map to pick start &amp; end. Compare walking routes by heat, shade and live weather.</p>
+      </div>
+    </section>
+
+    <!-- Layout -->
+    <div class="layout">
+
+      <!-- ── MAP ── -->
+      <section class="card map-card">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">LIVE STREET MAP</p>
+            <h2>Choose your walk</h2>
+          </div>
+          <div class="map-btns city-search">
+            <label class="sr-only" for="inp-city">Search for a city or place</label>
+            <input id="inp-city" type="search" placeholder="City or place (e.g. Jaipur)" autocomplete="off">
+            <button class="btn quiet" id="btn-city-search">⌕ Search</button>
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div id="map" role="application" aria-label="Interactive street map"></div>
+
+          <div class="map-type-control" role="group" aria-label="Choose map style">
+            <button type="button" id="btn-map-street" class="map-type-button is-active" aria-pressed="true" title="Show street map">▤ <span>Street</span></button>
+            <button type="button" id="btn-map-satellite" class="map-type-button" aria-pressed="false" title="Show satellite imagery">◉ <span>Satellite</span></button>
+          </div>
+
+          <!-- Overlay — pointer-events:none so map is always clickable -->
+          <div class="map-overlay" id="map-overlay" hidden></div>
+
+          <!-- Legend -->
+          <div class="map-legend">
+            <span><i class="ldot" style="background:#3ed9b6"></i>Start</span>
+            <span><i class="ldot" style="background:#ff9a5c"></i>End</span>
+            <span><i class="lline" style="background:#ff9a5c;opacity:.7"></i>Shortest</span>
+            <span><i class="lline" style="background:#3ed9b6"></i>CoolRoute</span>
+            <span><i class="ldot" style="background:#5fcc88;opacity:.7"></i>Trees</span>
+          </div>
+        </div>
+
+        <div class="map-foot">
+          <span id="map-foot-hint">Click the map to set your start point</span>
+          <span>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer noopener">OpenStreetMap</a></span>
+        </div>
+      </section>
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="sidebar">
+
+        <!-- Controls -->
+        <section class="card controls-card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">YOUR PREFERENCES</p>
+              <h2>Plan your route</h2>
+            </div>
+            <button class="text-btn" id="btn-swap">⇄ Swap</button>
+          </div>
+
+          <div class="places">
+            <div class="place-row">
+              <span class="place-icon start-icon"></span>
+              <div class="place-info place-autocomplete">
+                <small>START</small>
+                <input class="place-input" id="origin-input" type="search" placeholder="Search starting place" autocomplete="off" aria-label="Starting place">
+                <div class="place-suggestions" id="origin-suggestions" role="listbox" hidden></div>
+              </div>
+              <button class="text-btn" data-mode="origin" title="Set start by clicking on the map">Map</button>
+            </div>
+            <div class="place-divider"></div>
+            <div class="place-row">
+              <span class="place-icon end-icon"></span>
+              <div class="place-info place-autocomplete">
+                <small>DESTINATION</small>
+                <input class="place-input" id="dest-input" type="search" placeholder="Search destination" autocomplete="off" aria-label="Destination">
+                <div class="place-suggestions" id="dest-suggestions" role="listbox" hidden></div>
+              </div>
+              <button class="text-btn" data-mode="destination" title="Set destination by clicking on the map">Map</button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <div class="label-row">
+              <label for="inp-hour">Time of walk</label>
+              <b id="hour-display">1:00 PM</b>
+            </div>
+            <input id="inp-hour" type="range" min="6" max="20" step="1" value="13">
+            <div class="range-ticks"><span>6 AM</span><span>12 PM</span><span>8 PM</span></div>
+          </div>
+
+          <div class="control-block">
+            <div class="label-row">
+              <label for="inp-budget">Heat budget</label>
+              <b><span id="budget-display">60</span>%</b>
+            </div>
+            <input id="inp-budget" type="range" min="20" max="100" step="5" value="60">
+            <p class="hint">Lower = prefer cooler streets even if longer.</p>
+          </div>
+
+          <div class="toggles">
+            <label class="toggle-row">
+              <div class="toggle-info">
+                <b>Step-free only</b>
+                <small>Avoid mapped stairs</small>
+              </div>
+              <span class="switch">
+                <input id="chk-stepfree" type="checkbox">
+                <span class="track"></span>
+              </span>
+            </label>
+            <label class="toggle-row">
+              <div class="toggle-info">
+                <b>Use shade estimates</b>
+                <small>Trees &amp; buildings from OSM</small>
+              </div>
+              <span class="switch">
+                <input id="chk-shade" type="checkbox" checked>
+                <span class="track"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mode-row">
+            <span class="mode-label">Click map sets:</span>
+            <div class="segmented">
+              <button class="seg-btn active" data-mode="origin">Start</button>
+              <button class="seg-btn" data-mode="destination">End</button>
+              <button class="seg-btn" data-mode="close">Close street</button>
+            </div>
+          </div>
+
+          <button class="btn primary" id="btn-plan">Find my cooler route →</button>
+          <button class="btn subtle" id="btn-reset">Reset route &amp; closed streets</button>
+        </section>
+
+        <!-- Results -->
+        <section class="card results-card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">ROUTE COMPARISON</p>
+              <h2>Your options</h2>
+            </div>
+            <span class="chip" id="budget-chip">Ready</span>
+          </div>
+
+          <p class="verdict" id="verdict">Click the map to place start and destination, then plan your walk.</p>
+          <div class="route-compare-grid">
+            <section class="route-option shortest-option">
+              <h3><i class="route-swatch shortest-swatch"></i>Shortest</h3>
+              <p class="route-option-note">Direct walking route</p>
+              <table class="compare-table"><tbody>
+                <tr><th scope="row">Distance</th><td id="m-dist-base">--</td></tr>
+                <tr><th scope="row">Walk time</th><td id="m-time-base">--</td></tr>
+                <tr><th scope="row">Est. shade</th><td id="m-shade-base">--</td></tr>
+                <tr><th scope="row">Heat exposure</th><td id="m-heat-base">--</td></tr>
+              </tbody></table>
+            </section>
+            <section class="route-option cool-option">
+              <h3><i class="route-swatch cool-swatch"></i>CoolRoute</h3>
+              <p class="route-option-note" id="cool-route-note">Shade-aware option appears when shade data is ready.</p>
+              <table class="compare-table"><tbody>
+                <tr><th scope="row">Distance</th><td id="m-dist-cool">--</td></tr>
+                <tr><th scope="row">Walk time</th><td id="m-time-cool">--</td></tr>
+                <tr><th scope="row">Est. shade</th><td id="m-shade-cool">--</td></tr>
+                <tr><th scope="row">Heat exposure</th><td id="m-heat-cool">--</td></tr>
+              </tbody></table>
+            </section>
+          </div>
+          <details class="info-disclosure explain-card" id="route-info" open>
+            <summary><span><small>ROUTE DETAILS</small><b>Route calculations &amp; graph</b></span><i aria-hidden="true">⌄</i></summary>
+            <div class="disclosure-content">
+            <div class="explain-head">
+              <div><p class="eyebrow">SEE THE DIFFERENCE</p><h3 id="explain-title">Route metrics graph</h3></div>
+              <span class="graph-status" id="graph-status">Plan a route to compare</span>
+            </div>
+            <div class="graph-legend"><span><i class="legend-dot shortest-swatch"></i>Shortest</span><span><i class="legend-dot cool-swatch"></i>CoolRoute</span></div>
+            <div class="metric-graph" id="metric-graph" role="img" aria-label="Comparison graph for route distance, shade and heat exposure">
+              <div class="graph-row" data-metric="distance"><div class="graph-label">Distance <small>metres</small></div><div class="graph-bars"><div class="graph-bar-line"><i class="short-bar"></i><span class="short-value">—</span></div><div class="graph-bar-line"><i class="cool-bar"></i><span class="cool-value">—</span></div></div></div>
+              <div class="graph-row" data-metric="time"><div class="graph-label">Walk time <small>minutes</small></div><div class="graph-bars"><div class="graph-bar-line"><i class="short-bar"></i><span class="short-value">—</span></div><div class="graph-bar-line"><i class="cool-bar"></i><span class="cool-value">—</span></div></div></div>
+              <div class="graph-row" data-metric="shade"><div class="graph-label">Est. shade <small>percent</small></div><div class="graph-bars"><div class="graph-bar-line"><i class="short-bar"></i><span class="short-value">—</span></div><div class="graph-bar-line"><i class="cool-bar"></i><span class="cool-value">—</span></div></div></div>
+              <div class="graph-row" data-metric="heat"><div class="graph-label">Heat exposure <small>relative score</small></div><div class="graph-bars"><div class="graph-bar-line"><i class="short-bar"></i><span class="short-value">—</span></div><div class="graph-bar-line"><i class="cool-bar"></i><span class="cool-value">—</span></div></div></div>
+            </div>
+            <div class="learning-actions" aria-label="Learn about the Sun and route calculations">
+              <button type="button" class="learning-button" aria-expanded="false" aria-controls="sun-knowledge" data-learning-target="sun-knowledge"><span class="learning-icon" aria-hidden="true">☀</span><span class="learning-copy"><b>How sunlight is estimated</b><small>Location, date, time &amp; shade</small></span><span class="learning-arrow" aria-hidden="true">↗</span></button>
+              <button type="button" class="learning-button formula-button" aria-expanded="false" aria-controls="formula-info" data-learning-target="formula-info"><span class="learning-icon" aria-hidden="true">ƒx</span><span class="learning-copy"><b>Explore the formulas</b><small>Sun angle, heat &amp; route score</small></span><span class="learning-arrow" aria-hidden="true">↗</span></button>
+            </div>
+            <section class="learning-panel astronomy-content" id="sun-knowledge" hidden aria-labelledby="sun-knowledge-title">
+              <h4 id="sun-knowledge-title">How the Sun estimate uses your location</h4>
+              <p>When you choose a route, CoolRoute uses its latitude and longitude and your selected time. It first looks up forecast sunlight from Open-Meteo. If that is unavailable, it estimates the Sun’s position from the location, date, and time.</p>
+              <ul class="sun-steps">
+                <li><b>Latitude</b> tells how far north or south the route is. This changes the Sun’s angle above the horizon.</li>
+                <li><b>Longitude</b> tells how far east or west it is. Along with the time zone, it helps match clock time to the Sun’s local time.</li>
+                <li><b>Date</b> changes the Sun’s seasonal path. Its height is usually different in summer and winter.</li>
+                <li><b>Time</b> changes the Sun’s position during the day. Near solar noon, it is usually highest.</li>
+                <li>The app combines estimated sunlight with mapped tree and building shade to compare route heat exposure.</li>
+              </ul>
+              <p class="formula-footnote">These are planning estimates, not a precise shadow or pavement-temperature measurement. Missing map features or unavailable weather data can affect accuracy.</p>
+            </section>
+            <section class="learning-panel" id="formula-info" hidden aria-labelledby="formula-info-title">
+              <h4 id="formula-info-title">Mathematics behind the estimates</h4>
+              <div class="sun-formula"><b>Sun height from latitude, season, and time</b><code>sin(α) = sin(φ) sin(δ) + cos(φ) cos(δ) cos(H)</code><p class="formula-footnote">α = Sun height; φ = latitude; δ = seasonal declination; H = hour angle. If α is below the horizon, sunlight is set to zero.</p></div>
+              <div class="sun-formula sun-formula-secondary"><b>Season and local solar time</b><code>δ ≈ 23.45° × sin(360° × (day − 81) ÷ 365)<br>solar time ≈ clock time + longitude ÷ 15 − UTC offset<br>H = 15° × (solar time − 12)</code></div>
+            <div class="formula-grid">
+              <article><b>Shade estimate</b><code>100 × Σ(segment length × shade fraction) ÷ total distance</code><p>Each mapped street segment contributes according to its estimated tree/building shade.</p></article>
+              <article><b>Heat exposure</b><code>sun strength × Σ[length × (1 − shade) + wait time × walking speed × (1 − crossing shade)]</code><p>More sun and less shade increase this relative score. It is a planning estimate, not a temperature.</p></article>
+              <article><b>Walking time</b><code>Σ(segment length ÷ 1.3 m/s + crossing wait)</code><p>Uses an average walking speed of 1.3 m/s, plus mapped crossing waits where available.</p></article>
+              <article><b>Live sun strength</b><code>clamp(shortwave radiation ÷ 850 W/m², 0, 1)</code><p>Open-Meteo looks up radiation for the selected coordinates and local hour. Astronomy is the backup estimate.</p></article>
+              <article><b>CoolRoute choice</b><code>route cost = distance + λ × heat exposure</code><p>The app adjusts λ (lambda) until it finds a short route within your heat budget, when one is possible.</p></article>
+            </div>
+              <p class="formula-footnote">Shade estimates use mapped OpenStreetMap trees/buildings. A simple astronomy fallback uses the nearest 15° longitude meridian for its time-zone estimate, so it omits some orbital and clock corrections.</p>
+            </section>
+            </div>
+          </details>
+          <section class="history-card" aria-labelledby="history-title">
+            <div class="history-head"><div><p class="eyebrow">SAVED TO THIS DEVICE</p><h3 id="history-title">Your walk history</h3></div><button type="button" class="text-btn" id="btn-history-refresh">Refresh</button></div>
+            <p class="history-status" id="history-status" role="status">Loading saved walks…</p>
+            <div class="history-list" id="history-list" aria-live="polite"></div>
+            <button type="button" class="btn subtle history-more" id="btn-history-more" hidden>Load older walks</button>
+            <p class="history-footnote">Saved in <code>data/coolroute.sqlite3</code> for your account. Entries stay there until you remove the database file.</p>
+          </section>
+          <div hidden>
+            <span id="m-dist-delta"></span><span id="m-time-delta"></span>
+            <span id="m-shade-delta"></span><span id="m-heat-delta"></span>
+          </div>
+
+          <ul class="warnings" id="warnings"></ul>
+          <p class="data-note" id="data-note">Heat is a relative score — not medical advice. Shade estimated from mapped trees &amp; buildings.</p>
+        </section>
+
+      </aside>
+    </div>
+
+    <footer class="source-strip">
+      <span><b>LIVE ROUTING · LOCAL CALCULATIONS</b> · Streets: OpenStreetMap · Weather: Open-Meteo</span>
+      <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer noopener">Report map issue ↗</a>
+    </footer>
+  </main>
+
+  <!-- Leaflet JS — served locally -->
+  <script src="./leaflet.js"></script>
+  <!-- App JS -->
+  <script src="./frontend.js?v=solar-learning-satellite-12"></script>
+</body>
+</html>

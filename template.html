@@ -1,0 +1,198 @@
+<title>CoolRoute</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&display=swap">
+<style>
+/* Layout: map on the left, controls + results on the right; stacks on phones.
+   Palette: slate ground, teal = CoolRoute, orange = shortest route, green = tree shade. */
+:root {
+  --bg: #eaf0f2; --surface: #ffffff; --fg: #12262e; --muted: #546a73; --line: #d0dce1;
+  --cool: #0b7f86; --heat: #d4501a; --tree: #3f9a52; --sunny: #b9a58a; --bad: #b4261b; --warn: #8a5a00;
+  --map: #f6f9fa; --soft: #e3edf0;
+  --f-display: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e191e; --surface: #162329; --fg: #e3eef1; --muted: #92a7af; --line: #2a3b42;
+  --cool: #3cc4c9; --heat: #ff8a54; --tree: #6fbf7c; --sunny: #7b6e5c; --bad: #ff8a7d; --warn: #e8b64f;
+  --map: #101d23; --soft: #1d2f36; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e191e; --surface: #162329; --fg: #e3eef1; --muted: #92a7af; --line: #2a3b42;
+  --cool: #3cc4c9; --heat: #ff8a54; --tree: #6fbf7c; --sunny: #7b6e5c; --bad: #ff8a7d; --warn: #e8b64f;
+  --map: #101d23; --soft: #1d2f36; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.45;
+  padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1100px; margin: 0 auto; }
+header { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+h1 { font-family: var(--f-display); font-size: 2rem; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
+h1 span { color: var(--cool); }
+.sub { color: var(--muted); margin: 2px 0 0; max-width: 60ch; }
+.tag { font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+h2 { font-family: var(--f-display); font-size: 1.05rem; margin: 0 0 10px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+/* map */
+#map { width: 100%; height: auto; display: block; background: var(--map); border-radius: 6px; touch-action: manipulation; }
+.edge { stroke-linecap: round; fill: none; }
+.e-shade { stroke: var(--tree); stroke-width: 5; opacity: 0.55; }
+.e-sun { stroke: var(--sunny); stroke-width: 2.5; opacity: 0.8; }
+.e-closed { stroke: var(--bad); stroke-width: 3; stroke-dasharray: 2 5; opacity: 1; }
+.e-steps { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 1 3; opacity: 0.6; }
+.missing { stroke: var(--surface); stroke-width: 1.6; stroke-dasharray: 5 5; fill: none; }
+.cross { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+.node { fill: var(--muted); }
+.hit { fill: transparent; stroke: transparent; stroke-width: 18; cursor: pointer; }
+.route-base { fill: none; stroke: var(--heat); stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; opacity: 0.4; }
+.route-cool { fill: none; stroke: var(--cool); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.pin circle { stroke: var(--surface); stroke-width: 2; }
+.pin text { fill: #fff; font: 700 12px var(--f-body); }
+.pin-a circle { fill: var(--fg); }
+.pin-a text { fill: var(--surface); }
+.pin-b circle { fill: var(--cool); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 0.85rem; color: var(--muted); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 4px solid; }
+.sw.cool { border-color: var(--cool); } .sw.heat { border-color: var(--heat); opacity: 0.55; border-top-width: 8px; }
+.sw.tree { border-color: var(--tree); opacity: 0.7; } .sw.sunny { border-color: var(--sunny); border-top-width: 2px; }
+.sw.closed { border-color: var(--bad); border-top-style: dotted; } .sw.dash { border-color: var(--muted); border-top-style: dashed; border-top-width: 2px; }
+
+/* controls */
+.ctl { display: grid; gap: 14px; }
+.ctl label.row, .ctl .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+.ctl .val { font-family: var(--f-mono); font-weight: 500; font-size: 0.85rem; color: var(--cool); text-align: right; }
+input[type=range] { width: 100%; accent-color: var(--cool); height: 28px; margin: 0; }
+.hint { color: var(--muted); font-size: 0.82rem; margin: 0; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.checks label { display: flex; align-items: center; gap: 8px; min-height: 32px; cursor: pointer; }
+input[type=checkbox], input[type=radio] { accent-color: var(--cool); width: 18px; height: 18px; margin: 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg label { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; font-size: 0.92rem; background: var(--soft); }
+.seg label:has(input:checked) { border-color: var(--cool); box-shadow: inset 0 0 0 1px var(--cool); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; font-size: 0.9rem; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+button:hover { border-color: var(--cool); }
+:focus-visible { outline: 2px solid var(--cool); outline-offset: 2px; }
+
+/* results */
+.verdict { margin: 0 0 12px; padding: 10px 12px; background: var(--soft); border-radius: 6px; border-left: 4px solid var(--cool); font-size: 1rem; }
+.verdict.bad { border-left-color: var(--bad); }
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, thead th:first-child { text-align: left; font-weight: 500; }
+thead th { font-family: var(--f-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; }
+tbody td { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.c-heat { color: var(--heat); } .c-cool { color: var(--cool); }
+.delta.good { color: var(--cool); } .delta.bad { color: var(--heat); }
+.warns { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.warns li { padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; background: var(--soft); }
+.warns .w-bad { border-left: 4px solid var(--bad); } .warns .w-warn { border-left: 4px solid var(--warn); } .warns .w-info { border-left: 4px solid var(--muted); }
+#sunchart { width: 100%; height: auto; display: block; }
+#sunchart .ax { stroke: var(--line); stroke-width: 1; }
+#sunchart .sunline { fill: none; stroke: var(--heat); stroke-width: 2; }
+#sunchart .sunfill { fill: var(--heat); opacity: 0.14; }
+#sunchart .tick { fill: var(--muted); font: 10px var(--f-mono); }
+#sunchart .mark { stroke: var(--fg); stroke-width: 1; stroke-dasharray: 3 3; }
+#sunchart .markdot { fill: var(--heat); stroke: var(--surface); stroke-width: 2; }
+.how { font-size: 0.9rem; color: var(--muted); }
+.how code { font-family: var(--f-mono); font-size: 0.82rem; color: var(--fg); background: var(--soft); padding: 2px 6px; border-radius: 4px; display: inline-block; margin: 2px 0; }
+.how p { margin: 6px 0; }
+footer { margin-top: 16px; color: var(--muted); font-size: 0.85rem; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Cool<span>Route</span></h1>
+      <p class="sub">Pedestrian routing with shade and heat-exposure budgets. Pick a start and end, set the time and your heat budget, and compare the shortest walk with the cooler one.</p>
+    </div>
+    <div class="tag">PS 31 · Track 08 Smart City · Synthetic neighbourhood</div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Neighbourhood map</h2>
+      <svg id="map" viewBox="-28 -28 616 616" role="img" aria-label="Street map with two walking routes between points A and B"></svg>
+      <ul class="legend">
+        <li><span class="sw cool"></span>CoolRoute</li>
+        <li><span class="sw heat"></span>Shortest route</li>
+        <li><span class="sw tree"></span>Shaded street</li>
+        <li><span class="sw sunny"></span>Sunny street</li>
+        <li><span class="sw dash"></span>Missing data</li>
+        <li><span class="sw closed"></span>Closed footpath</li>
+      </ul>
+      <p class="hint" style="margin-top:8px">Small squares are crossings with a signal wait. Tap a junction to place a point, or choose "Close footpath" and tap a street.</p>
+    </div>
+
+    <div class="stack">
+      <div class="card ctl">
+        <h2 style="margin:0">Scenario controls</h2>
+        <div>
+          <div class="row"><label for="hour">Time of day</label><span class="val"><span id="hourlabel"></span> · <span id="sunlabel"></span></span></div>
+          <input type="range" id="hour" min="5" max="19" step="0.25" value="13">
+        </div>
+        <div>
+          <div class="row"><label for="budget">Heat budget</label><span class="val" id="budgetlabel"></span></div>
+          <input type="range" id="budget" min="20" max="100" step="5" value="60">
+          <p class="hint">100% means no limit. Lower means the route must be cooler.</p>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="shade" checked> Shade available</label>
+          <label><input type="checkbox" id="stepfree"> Step-free only</label>
+        </div>
+        <div>
+          <div class="row" style="margin-bottom:6px"><span>Tap on map to</span></div>
+          <div class="seg">
+            <label><input type="radio" name="mode" value="start" checked> Set start (A)</label>
+            <label><input type="radio" name="mode" value="end"> Set end (B)</label>
+            <label><input type="radio" name="mode" value="close"> Close footpath</label>
+          </div>
+        </div>
+        <div class="btns">
+          <button id="swap" type="button">Swap A and B</button>
+          <button id="reopen" type="button">Reopen footpaths</button>
+          <button id="preset-noon" type="button">Hot afternoon</button>
+          <button id="preset-eve" type="button">Evening</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Which route should I walk?</h2>
+        <p id="verdict" class="verdict"></p>
+        <div id="results" class="tbl">
+          <table>
+            <thead><tr><th></th><th class="c-heat">Shortest</th><th class="c-cool">CoolRoute</th><th>Change</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <ul id="warnings" class="warns"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Sun strength through the day</h2>
+        <svg id="sunchart" viewBox="0 0 320 110" role="img" aria-label="Sun strength from 5 am to 7 pm with the chosen time marked"></svg>
+      </div>
+
+      <div class="card how">
+        <h2>How the score works</h2>
+        <p><code>heat = Σ length × (1 − shade) × sun(t) + waits × (1 − crossing shade) × sun(t)</code></p>
+        <p><code>sun(t) = max(0, sin φ sin δ + cos φ cos δ cos h)</code> for Jaipur, φ = 26.9°.</p>
+        <p>CoolRoute minimises <code>distance + λ × heat</code> and tunes λ until heat fits the budget. Step-free is never traded away.</p>
+        <p>Heat exposure is a relative planning score for comparing routes. It is not a medical risk for any person.</p>
+      </div>
+    </div>
+  </div>
+  <footer>All data in this prototype is synthetic. A real deployment would load OpenStreetMap streets, tree-canopy and building-shadow data.</footer>
+</div>
+
+<script>
+/*CORE*/
+const GRAPH = /*GRAPH*/;
+/*APP*/
+</script>

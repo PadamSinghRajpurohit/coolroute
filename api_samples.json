@@ -1,0 +1,245 @@
+{
+ "health": {
+  "status": "ok",
+  "nodes": 64,
+  "edges": 112,
+  "data": "synthetic"
+ },
+ "sun": {
+  "hour": 13.0,
+  "sun_strength": 0.7739
+ },
+ "route_request": {
+  "origin": {
+   "node": 0
+  },
+  "destination": {
+   "node": 63
+  },
+  "hour": 13,
+  "heat_budget_pct": 60,
+  "step_free": false,
+  "shade_available": true,
+  "closed_edge_ids": []
+ },
+ "route_response": {
+  "sun_strength": 0.774,
+  "heat_budget": 457.2,
+  "budget_met": true,
+  "baseline": {
+   "nodes": [
+    0,
+    8,
+    16,
+    17,
+    18,
+    19,
+    20,
+    28,
+    36,
+    37,
+    45,
+    53,
+    61,
+    62,
+    63
+   ],
+   "distance_m": 1106.6,
+   "walk_time_min": 15.0,
+   "heat_exposure": 762.1,
+   "effort": 1181.8,
+   "shaded_share": 0.167,
+   "data_confidence": 0.71,
+   "missing_data_segments": 0,
+   "segments": 14
+  },
+  "coolroute": {
+   "nodes": [
+    0,
+    1,
+    2,
+    10,
+    18,
+    26,
+    34,
+    42,
+    50,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63
+   ],
+   "distance_m": 1129.3,
+   "walk_time_min": 14.6,
+   "heat_exposure": 454.9,
+   "effort": 1212.7,
+   "shaded_share": 0.489,
+   "data_confidence": 0.61,
+   "missing_data_segments": 0,
+   "segments": 14
+  },
+  "explanation": "CoolRoute is 23 m longer (+2.1%) and takes 0.4 min less, but cuts heat exposure by 40% by keeping to shaded streets.",
+  "warnings": [],
+  "note": "Heat exposure is a relative planning score, not a medical risk."
+ },
+ "stepfree": {
+  "sun_strength": 0.774,
+  "heat_budget": 448.9,
+  "budget_met": false,
+  "baseline": {
+   "nodes": [
+    0,
+    8,
+    16,
+    17,
+    18,
+    26,
+    27,
+    35,
+    36,
+    37,
+    45,
+    46,
+    54,
+    55,
+    63
+   ],
+   "distance_m": 1121.3,
+   "walk_time_min": 16.1,
+   "heat_exposure": 748.1,
+   "effort": 1181.1,
+   "shaded_share": 0.251,
+   "data_confidence": 0.58,
+   "missing_data_segments": 3,
+   "segments": 14
+  },
+  "coolroute": {
+   "nodes": [
+    0,
+    8,
+    16,
+    17,
+    18,
+    26,
+    34,
+    35,
+    36,
+    37,
+    45,
+    46,
+    54,
+    55,
+    63
+   ],
+   "distance_m": 1124.1,
+   "walk_time_min": 15.6,
+   "heat_exposure": 680.1,
+   "effort": 1188.0,
+   "shaded_share": 0.293,
+   "data_confidence": 0.57,
+   "missing_data_segments": 2,
+   "segments": 14
+  },
+  "explanation": "CoolRoute is 3 m longer (+0.2%) and takes 0.5 min less, but cuts heat exposure by 9% by keeping to shaded streets.",
+  "warnings": [
+   {
+    "code": "BUDGET_NOT_MET",
+    "message": "The heat budget cannot be met. This is the coolest route available."
+   },
+   {
+    "code": "MISSING_DATA",
+    "message": "2 of 14 segments have missing shade data; heat value is approximate."
+   },
+   {
+    "code": "STEP_FREE_HARD_RULE",
+    "message": "Only step-free segments were used."
+   }
+  ],
+  "note": "Heat exposure is a relative planning score, not a medical risk."
+ },
+ "budget_fail": {
+  "sun_strength": 0.774,
+  "heat_budget": 76.2,
+  "budget_met": false,
+  "baseline": {
+   "nodes": [
+    0,
+    8,
+    16,
+    17,
+    18,
+    19,
+    20,
+    28,
+    36,
+    37,
+    45,
+    53,
+    61,
+    62,
+    63
+   ],
+   "distance_m": 1106.6,
+   "walk_time_min": 15.0,
+   "heat_exposure": 762.1,
+   "effort": 1181.8,
+   "shaded_share": 0.167,
+   "data_confidence": 0.71,
+   "missing_data_segments": 0,
+   "segments": 14
+  },
+  "coolroute": {
+   "nodes": [
+    0,
+    1,
+    2,
+    10,
+    18,
+    26,
+    34,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    55,
+    63
+   ],
+   "distance_m": 1150.8,
+   "walk_time_min": 14.9,
+   "heat_exposure": 351.7,
+   "effort": 1191.7,
+   "shaded_share": 0.614,
+   "data_confidence": 0.57,
+   "missing_data_segments": 1,
+   "segments": 14
+  },
+  "explanation": "CoolRoute is 44 m longer (+4.0%) and takes 0.1 min less, but cuts heat exposure by 54% by keeping to shaded streets.",
+  "warnings": [
+   {
+    "code": "BUDGET_NOT_MET",
+    "message": "The heat budget cannot be met. This is the coolest route available."
+   },
+   {
+    "code": "MISSING_DATA",
+    "message": "1 of 14 segments have missing shade data; heat value is approximate."
+   }
+  ],
+  "note": "Heat exposure is a relative planning score, not a medical risk."
+ },
+ "bad_input": {
+  "error": {
+   "code": "BAD_INPUT",
+   "message": "node must be an integer from 0 to 63"
+  }
+ },
+ "no_route": {
+  "error": {
+   "code": "NO_ROUTE",
+   "message": "No route exists with the closed footpaths and step-free rule given."
+  }
+ }
+}

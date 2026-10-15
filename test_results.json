@@ -1,0 +1,67 @@
+[
+ {
+  "name": "Sun is zero at midnight",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Sun peaks near noon",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Cool route heat <= budget",
+  "pass": true,
+  "detail": "heat 455 <= 457"
+ },
+ {
+  "name": "Cool route is cooler than baseline",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Baseline is the shortest",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "At night heat is zero and routes match",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Without shade the baseline heat is higher",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Closed footpath is never used",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Step-free route uses only step-free edges",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "No step-free route -> error returned",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Impossible budget is flagged (budget_met False)",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Missing-data edges exist in the map and are counted",
+  "pass": true,
+  "detail": "9 low-confidence edges"
+ },
+ {
+  "name": "Budget 100% returns the baseline route",
+  "pass": true,
+  "detail": ""
+ }
+]

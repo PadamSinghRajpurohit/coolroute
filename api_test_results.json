@@ -1,0 +1,62 @@
+[
+ {
+  "name": "GET /health returns ok",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "GET /sun at 13:00 is about 0.77",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "GET /sun rejects hour 99 with 400",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "POST /route returns two routes",
+  "pass": true,
+  "detail": "CoolRoute is 23 m longer (+2.1%) and takes 0.4 min less, but cuts heat exposure by 40% by keeping to shaded streets."
+ },
+ {
+  "name": "Coordinates snap to nearest nodes",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "step_free request works or says NO_ROUTE",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Impossible budget returns warning BUDGET_NOT_MET",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Night time: no sun, equal routes",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Bad node id returns 400",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Bad closed edge id returns 400",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "Missing destination returns 400",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "name": "All exits closed returns 404 NO_ROUTE",
+  "pass": true,
+  "detail": ""
+ }
+]
